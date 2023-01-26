@@ -1,0 +1,54 @@
+<script>
+  function trackRivigoShipment() {
+    document.getElementById("trackingInfo").innerHTML = "";
+    const trackingId = document.getElementById("parcelTrackingId").value;
+    if (trackingId.length < 1) {
+      alert("GC/Ref no. can't be empty");
+      return;
+    }
+    document.getElementById("fetchingData").innerHTML =
+      "Fetching tracking information...";
+
+    var requestOptions = {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const date = new Date();
+    const offset = date.getTimezoneOffset() * (-1);
+    const trackingInput = btoa(JSON.stringify({ "trackingId": trackingId, "timeOffset": offset }));
+    fetch(
+      window.location.origin + "/wp-json/trackRivigo/" + trackingInput.replace('=', '').replace('=', ''),
+      requestOptions
+    )
+      .then((response) => response.json())
+      .then((result) => {
+        try {
+          result = result.replace(/(^"|"$)/g, "");
+          document.getElementById("fetchingData").innerHTML = "";
+          var response = atob(result);
+          var htmlView =
+            typeof response == 'undefined'
+              ? '<div>Error fetching data.</div>'
+              : response;
+          document.getElementById("trackingInfo").innerHTML = htmlView;
+        } catch (error) {
+          document.getElementById("fetchingData").innerHTML =
+            "Error fetching data.";
+        }
+      })
+      .catch((error) => console.log("error", error));
+  }
+</script>
+
+
+<div>
+  <input type="text" id="parcelTrackingId" placeholder="GC or reference no" required />
+  <button onclick="trackRivigoShipment();">Track</button>
+  </br></br>
+  <div id="trackingInfo"></div>
+  <div id="fetchingData"></div>
+
+</div>
